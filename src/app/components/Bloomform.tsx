@@ -37,7 +37,7 @@ export default function BloomForm() {
           'Content-Type': 'application/json',
             'Authorization':`Bearer ${user.token}`
         },
-        body: JSON.stringify({ username: user.username, text }),
+        body: JSON.stringify({ text }),
       });
 
       if (response.ok) {

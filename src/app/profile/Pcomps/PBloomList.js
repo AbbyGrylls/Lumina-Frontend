@@ -4,17 +4,20 @@ import { useBloomsContext } from "../../hooks/useBloomsContext";
 import { useAuthContext } from "../../hooks/useAuthContext";
 import { Typography, Box, Button, Menu, MenuItem, TextField } from "@mui/material";
 import { MoreVert } from "@mui/icons-material";
-
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import { IconButton, Tooltip } from '@mui/material';
+import { useLikes } from "@/app/context/LikesContext";
 export default function PBloomList() {
+  const { redisLikes,likeCounts,likesDispatch } = useLikes();
   const { Pblooms, dispatch } = useBloomsContext();
   const { user } = useAuthContext();
   const [anchorEl, setAnchorEl] = useState(null);
   const [selectedBloom, setSelectedBloom] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [editText, setEditText] = useState("");
-
   const handleMoreClick = (event, bloom) => {
-    console.log("More clicked for bloom:", bloom);
+    //console.log("More clicked for bloom:", bloom);
     setAnchorEl(event.currentTarget);
     setSelectedBloom(bloom);
   };
@@ -26,7 +29,7 @@ export default function PBloomList() {
     setEditText("");
   };
 
-  const handleEditInit = () => {
+  /* const handleEditInit = () => {
     console.log("Edit mode activated for:", selectedBloom);
     setEditText(selectedBloom.text);
     setEditMode(true);
@@ -50,6 +53,7 @@ export default function PBloomList() {
         const updatedBloom = await res.json();
         console.log("API response:", updatedBloom);
         if (res.ok) {
+          dispatch({ type: "UPDATE_PBLOOM", payload: updatedBloom });
           dispatch({ type: "UPDATE_BLOOM", payload: updatedBloom });
           handleClose();
         } else {
@@ -59,7 +63,7 @@ export default function PBloomList() {
         console.error("Edit error:", error);
       }
     }
-  };
+  }; */
 
   const handleDelete = async () => {
     if (selectedBloom && user) {
@@ -71,6 +75,7 @@ export default function PBloomList() {
           },
         });
         if (res.ok) {
+          dispatch({ type: "DELETE_PBLOOM", payload: selectedBloom._id });
           dispatch({ type: "DELETE_BLOOM", payload: selectedBloom._id });
           handleClose();
         } else {
@@ -81,9 +86,34 @@ export default function PBloomList() {
       }
     }
   };
+  const liked = async (bloom) => {
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/blooms/like/${bloom._id}`, {
+        method: "PATCH",
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      });
+      const data = await res.json();
+      if (res.ok) {
+        /* 
+        console.log(data.likeCount); // Correct
+        console.log(Pblooms.find(p => p._id === bloom._id)?.likesCount); */
+        likesDispatch({ type: "LIKED", payload: data })
+        console.log(redisLikes)
+      }
+      else {
+        console.error("Failed to like/unlike bloom", data.error);
+      }
+    } catch (error) {
+      console.error("like error:", error);
+    }
+  }
 
   useEffect(() => {
     const getBlooms = async () => {
+      
+      console.log(redisLikes)
       if (user && user.username) {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/blooms/${encodeURIComponent(user.username)}`, {
@@ -132,7 +162,7 @@ export default function PBloomList() {
                   {user.name}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                  @{bloom.username}
+                  @{user.username}
                 </Typography>
               </Box>
               <Button onClick={(event) => handleMoreClick(event, bloom)}>
@@ -140,6 +170,27 @@ export default function PBloomList() {
               </Button>
             </Box>
             <Typography sx={{ color: "#fff" }}>{bloom.text}</Typography>
+            <Box>
+              <Tooltip title={
+                redisLikes?.likedBloomIds?.includes(bloom._id) 
+                  ? "Unlike"
+                  : bloom.likesCount
+                    ? "Like"
+                    : "Be the first to like"
+              }>
+                <IconButton onClick={() => liked(bloom)}>
+                  {redisLikes?.likedBloomIds?.includes(bloom._id) || redisLikes.liked? (
+                    <FavoriteIcon style={{ color: 'red' }} />
+                  ) : (
+                    <FavoriteBorderIcon />
+                  )}
+                </IconButton>
+                <Typography sx={{ color: "#fff" }}>
+                  {/* {redisLikes.likeCount > 0 ? redisLikes.likeCount : "No likes yet"} */}
+                  {likeCounts?.[bloom._id] ?? 0}
+                </Typography>
+              </Tooltip>
+            </Box>
           </Box>
         ))
       ) : (
@@ -159,12 +210,12 @@ export default function PBloomList() {
           horizontal: "right",
         }}
       >
-        <MenuItem onClick={handleEditInit}>Edit</MenuItem>
+        {/* <MenuItem onClick={handleEditInit}>Edit</MenuItem> */}
         <MenuItem onClick={handleDelete}>Delete</MenuItem>
       </Menu>
-
+      {/*  <Box sx={{}}>
       {editMode && (
-        <Box sx={{ marginTop: "20px", padding: "20px", backgroundColor: "#444", borderRadius: "8px" }}>
+        <Box sx={{ marginLeft: "110px", padding: "20px", backgroundColor: "444", borderRadius: "8px", zIndex:5, width:"100px"}}>
           <TextField
             fullWidth
             value={editText}
@@ -180,6 +231,7 @@ export default function PBloomList() {
           </Button>
         </Box>
       )}
+      </Box> */}
     </Box>
   );
 }

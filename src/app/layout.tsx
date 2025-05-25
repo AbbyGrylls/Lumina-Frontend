@@ -3,6 +3,7 @@ import LayoutSprt from "./LayoutSprt";
 import type { Metadata } from "next";
 import BloomContextProvider from "./context/BloomContext"
 import {AuthContextProvider} from "./context/AuthContext"
+import {LikesContextProvider} from "./context/LikesContext"
 //import {UserProvider} from "./context/UserContext"
 
 
@@ -16,9 +17,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       {/* <UserProvider> */}
       <AuthContextProvider>
       < BloomContextProvider>
+      < LikesContextProvider>
       <body>
         <LayoutSprt > {children}</LayoutSprt>
       </body>
+      </LikesContextProvider>
       </BloomContextProvider>
       </AuthContextProvider>
       {/* </UserProvider> */}
