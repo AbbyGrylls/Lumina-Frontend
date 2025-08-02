@@ -80,7 +80,7 @@ export default function Home() {
                 </span>{" "}
                 </Box>
                 <Box>
-                <span style={{ color: "rgba(255, 255, 255, 0.3)",paddingRight:"10px"}}>@{bloom.username}</span>
+                <span style={{ color: "rgba(255, 255, 255, 0.3)",paddingRight:"10px"}}>@{bloom.userId.username}</span>
               </Box>
               </Box>
               <Typography sx={{paddingLeft:"50px",marginTop:"-15px"}}>{bloom.text}</Typography>

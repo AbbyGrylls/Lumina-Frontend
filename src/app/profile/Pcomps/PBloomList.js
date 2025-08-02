@@ -93,6 +93,7 @@ export default function PBloomList() {
             },
           });
           const json = await res.json();
+          console.log(json.Pblooms)
           if (res.ok) {
             dispatch({ type: "SET_PBLOOMS", payload: json.Pblooms || json });
           } else {
@@ -132,7 +133,7 @@ export default function PBloomList() {
                   {user.name}
                 </Typography>
                 <Typography variant="subtitle2" sx={{ color: "rgba(255, 255, 255, 0.6)" }}>
-                  @{bloom.username}
+                  @{bloom.userId.username}
                 </Typography>
               </Box>
               <Button onClick={(event) => handleMoreClick(event, bloom)}>
